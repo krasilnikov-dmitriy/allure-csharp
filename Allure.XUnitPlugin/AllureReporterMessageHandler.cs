@@ -1,4 +1,5 @@
-﻿using Allure.Commons;
+﻿using System;
+using Allure.Commons;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -17,7 +18,7 @@ namespace Allure.XUnitPlugin
             Execution.TestCollectionFinishedEvent += HandleTestCollectionFinished;
 
             /*Execution.TestMethodStartingEvent += HandleMethodStartingEvent;
-            Execution.TestMethodFinishedEvent += HandleMethodFinishedEvent;
+            Execution.TestMethodFinishedEvent += HandleMethodFinishedEvent;*/
 
             Execution.TestStartingEvent += HandleStarting;
 
@@ -25,11 +26,54 @@ namespace Allure.XUnitPlugin
             Execution.TestSkippedEvent += HandleSkipped;
             Execution.TestFailedEvent += HandleFailed;
 
-            Execution.TestFinishedEvent += HandleFinishedEvent;*/
+            Execution.TestFinishedEvent += HandleFinishedEvent;
+        }
+
+        private void HandleFinishedEvent(MessageHandlerArgs<ITestFinished> args)
+        {
+            var testResult = args.Message;
+            allure.UpdateTestCase(testResult.TestCase.UniqueID, t => t.stage = Stage.finished);
+        }
+
+        private void HandleFailed(MessageHandlerArgs<ITestFailed> args)
+        {
+            var testResult = args.Message;
+            allure.UpdateTestCase(testResult.TestCase.UniqueID, t => t.status = Status.failed);
+        }
+
+        private void HandleSkipped(MessageHandlerArgs<ITestSkipped> args)
+        {
+            var testResult = args.Message;
+            allure.UpdateTestCase(testResult.TestCase.UniqueID, t => t.status = Status.skipped);
+        }
+
+        private void HandlePassed(MessageHandlerArgs<ITestPassed> args)
+        {
+            var testResult = args.Message;
+            allure.UpdateTestCase(testResult.TestCase.UniqueID, t => t.status = Status.passed);
+        }
+
+        private void HandleStarting(MessageHandlerArgs<ITestStarting> args)
+        {
+            var testStarting = args.Message;
+            
+            var testContainer = new TestResult
+            {
+                uuid = testStarting.TestCase.UniqueID,
+                name = testStarting.TestCase.DisplayName
+            };
+
+            allure.StartTestCase(testContainer);
         }
         
+
         private void HandleTestCollectionStarting(MessageHandlerArgs<ITestCollectionStarting> args)
         {
+            Console.WriteLine("###########################################################");
+            Console.WriteLine("###########################################################");
+            Console.WriteLine("###########################################################");
+            Console.WriteLine("###########################################################");
+            Console.WriteLine("###########################################################");
             var testCollectionStarting = args.Message;
             string key = $"{testCollectionStarting.TestCollection.UniqueID}";
             
